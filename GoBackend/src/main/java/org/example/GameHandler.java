@@ -3,9 +3,11 @@ package org.example;
 import jakarta.websocket.Session;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 
 public class GameHandler {
@@ -25,17 +27,28 @@ public class GameHandler {
         p2.setBoard(newGame.getBoard());
     }
 
-    static public String makeMove(String msg, Session session) {
+    static public String makeMove(String msg, Session session) throws IOException {
         Game game = GameHandler.gameDict.get(session.getId());
         Player player = game.getTurn();
         if (player.getSession().getId().equals(session.getId()))  {
             String[] parseMsg = msg.split(" ");
-            player.placePiece(game.getBoard(), Integer.parseInt(parseMsg[1]), Integer.parseInt(parseMsg[2]));
-            game.toggleTurn();
-            Board.printMatrix(game.getBoard().getBoardMatrix());
-            return String.format("Placed piece at x: %d and y: %d\n", Integer.parseInt(parseMsg[1]), Integer.parseInt(parseMsg[2]));
+            if (player.placePiece(game.getBoard(), Integer.parseInt(parseMsg[1]), Integer.parseInt(parseMsg[2]))) {
+                game.toggleTurn();
+                Board.printMatrix(game.getBoard().getBoardMatrix());
+                game.sendAllClients(String.format("Placed piece at x: %d and y: %d\n", Integer.parseInt(parseMsg[1]), Integer.parseInt(parseMsg[2])));
+                return "Success";
+            }
+            return  "Invalid place";
         } else {
             return "not your turn";
         }
+    }
+
+    static public String piecesToBeDeleted(Session session) throws IOException {
+        Game game = GameHandler.gameDict.get(session.getId());
+        ArrayList<Piece> toBeDeleted = game.getBoard().deletePieces();
+        String s = toBeDeleted.stream().map(Piece::toString).collect(Collectors.joining(","));
+        game.sendAllClients(s);
+        return s;
     }
 }

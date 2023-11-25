@@ -1,5 +1,7 @@
 package org.example;
 
+import java.io.IOException;
+
 public class Game {
     private final Player p1;
     private final Player p2;
@@ -15,6 +17,10 @@ public class Game {
         return p1;
     }
 
+    public void sendAllClients(String msg) throws IOException {
+        p1.getSession().getBasicRemote().sendText(msg);
+        p2.getSession().getBasicRemote().sendText(msg);
+    }
     public Player getTurn() {
         return turn ? p1 : p2;
     }

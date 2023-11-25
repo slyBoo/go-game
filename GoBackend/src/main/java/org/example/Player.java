@@ -12,13 +12,12 @@ public class Player {
         this.score = 0;
     }
 
-    public void placePiece(Board board, int x, int y) {
-        System.out.println("Out");
-        if (Rules.canPlace(board, x, y)) {
-            System.out.println("in");
-            Piece p = new Piece(this.colour, x, y);
-            board.getBoardMatrix()[x][y] = p;
+    public boolean placePiece(Board board, int x, int y) {
+        if (Rules.canPlace(board, x, y, this.colour)) {
+            board.getBoardMatrix()[x][y].setColour(this.colour);
+            return true;
         }
+        return false;
     }
 
     public Session getSession() {
@@ -49,4 +48,5 @@ public class Player {
 enum Colour {
     BLACK,
     WHITE,
+    EMPTY,
 }
