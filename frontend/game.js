@@ -130,7 +130,6 @@ function displayBoard(boardDimensions) {
     const gridColour = colours.Subtext0; 
 
     // board size and position
-    const boardSize = this.cameras.main.width * 0.6;
     const margin = boardSize * 0.05; // gep between the boartd and the screen
     const cornerRadius = 20; // radius of the board corners
     const shadowOffset = 30; // the bit under the board to give it depth
