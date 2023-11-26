@@ -27,8 +27,8 @@ public class Board {
                 }
             }
         }
-        for (int i = 0; i <  this.boardMatrix .length; i++) {
-            for (int j = 0; j <  this.boardMatrix [i].length; j++) {
+        for (int i = 0; i < this.boardMatrix .length; i++) {
+            for (int j = 0; j < this.boardMatrix [i].length; j++) {
                 if (piecesToBeDeleted.contains(this.boardMatrix[i][j])) {
                     this.boardMatrix[i][j].setColour(Colour.EMPTY);
                 }
