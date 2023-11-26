@@ -235,7 +235,7 @@ function passButton()
 {
     const buttonWidth = 150;
     const buttonHeight = 50;
-    const buttonX = this.cameras.main.centerX - buttonWidth / 2;
+    const buttonX = this.cameras.main.centerX - buttonWidth;
     const buttonY = this.cameras.main.centerY - boardSize / 2 - buttonHeight - 20; // Position above the board
     const buttonText = 'Pass';
 
@@ -246,7 +246,7 @@ function passButton()
     graphics.fillRoundedRect(buttonX, buttonY, buttonWidth, buttonHeight, 15);
 
     // button text
-    const text = this.add.text(buttonX, buttonY + buttonHeight / 2, buttonText, {
+    const text = this.add.text(buttonX + buttonHeight / 2, buttonY + buttonHeight / 2, buttonText, {
         fontFamily: 'Renogare',
         fontSize: '24px',
         color: '#4c4f69', // colours.Text
@@ -254,7 +254,7 @@ function passButton()
     text.setOrigin(0.5, 0.5);
 
     // player text
-    const playerText = this.add.text(buttonX, buttonY - 50, `Player ${playerNum == 1 ? "One" : "Two"}`, {
+    const playerText = this.add.text(buttonX - 50, buttonY, `Player ${playerNum == 1 ? "One" : "Two"}`, {
         fontFamily: 'Renogare',
         fontSize: '24px',
         color: '#4c4f69', // colours.Text
