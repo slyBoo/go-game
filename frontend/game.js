@@ -62,7 +62,7 @@ let grid;
 let gridSize; // size of the grid
 let pieces = {}; // store the pieces on the board
 let boardSize; // size of the board
-
+let playerNum; // player num
 // temporary variables before networking
 let tempPlayerColour = 1; // 0 for white 1 for black
 
@@ -111,6 +111,16 @@ function create() // create game objects
                 deletePiece(x, y)
             }
             console.log("Deleted")
+        } else if (parsedMessage[0] == "pass") {
+            tempPlayerColour = Math.abs(tempPlayerColour - 1);
+        } else if (parsedMessage[0] ==  "gs") {
+            if (parsedMessage[2] == "1") {
+                playerNum = 1
+            } else {
+                playerNum = 2
+            }
+        } else if (parsedMessage[0] == "end:") {
+            
         }
         console.log('Received a message:', receivedMessage);
     });
@@ -236,7 +246,6 @@ function passButton()
     // pass when clicked 
     graphics.setInteractive(new Phaser.Geom.Rectangle(buttonX, buttonY, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
     graphics.on('pointerdown', () => {
-        console.log('Pass');
         socket.send('pass');
     });
 
