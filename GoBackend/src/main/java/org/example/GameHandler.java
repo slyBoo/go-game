@@ -65,7 +65,7 @@ public class GameHandler {
             game.toggleTurn();
             game.setPassCount(game.getPassCount() + 1);
             if (game.getPassCount() == 2) {
-                game.sendAllClients(String.format("end: p1: %d p2: %d", game.getP1().getScore(), game.getP2().getScore()));
+                game.sendAllClients(String.format("end: %d %d", game.getP1().getScore(), game.getP2().getScore()));
                 return "End Game";
             }
             game.sendAllClients("pass");

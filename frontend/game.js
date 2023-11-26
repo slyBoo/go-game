@@ -63,9 +63,6 @@ let gridSize; // size of the grid
 let pieces = {}; // store the pieces on the board
 let boardSize; // size of the board
 let playerNum = 1; // 0 for white 1 for black
-let gameEnd = false; // if the game has ended
-let winner;
-let score = 0;
 
 // temporary variables before networking
 let tempPlayerColour = 1; // 0 for white 1 for black
@@ -83,10 +80,6 @@ function create() // create game objects
         let margin = boardSize * 0.05; 
         let boardX = (this.cameras.main.width - boardSize) / 2;
         let boardY = (this.cameras.main.height - boardSize) / 2;
-        console.log(boardX)
-        console.log(boardY)
-        console.log(boardSize)
-        console.log(`${pointer.x} ${pointer.y}`)
         if (pointer.x > boardX && pointer.x < boardSize + boardX - margin && pointer.y > boardY && pointer.y < boardSize + boardY - margin) {
             socket.send(`M: ${Math.round((pointer.x - (boardX + margin)) / gridSize)} ${Math.round((pointer.y - (margin + boardY)) / gridSize)}`)
         }
@@ -104,11 +97,12 @@ function create() // create game objects
         const receivedMessage = event.data;
         const parsedMessage = receivedMessage.split(' ')
         // Check if the message starts with a specific string
-        if (parsedMessage[0] == "bd:" && !gameEnd) {
+        if (parsedMessage[0] == "bd:") {
             // Do something when the message starts with the expected string
             displayBoard.call(this, parseInt(parsedMessage[1])); // display the game board
         } else if (parsedMessage[0] == "M:") {
-            const colour = playerNum == 0 ? colours.Base : colours.Text // set the player colour
+            const colour = tempPlayerColour == 0 ? colours.Base : colours.Text // set the player colour
+            tempPlayerColour = Math.abs(tempPlayerColour - 1);
             const x = grid[parseInt(parsedMessage[2])][parseInt(parsedMessage[4])].x
             const y = grid[parseInt(parsedMessage[2])][parseInt(parsedMessage[4])].y
             placePiece.call(this, x, y, colour)
@@ -129,25 +123,10 @@ function create() // create game objects
                 playerNum = 2
             }
         } else if (parsedMessage[0] == "end:") {
-
-        }
-        else if (parsedMessage[0] == "gs" && parsedMessage[1] == "2")
-        {
-            playerNum = 2;
-        }
-        else if (parsedMessage[0] == "end:") // end the game
-        {
-            gameEnd = true;
-            winner = parsedMessage[1];
-            score = parsedMessage[2];
+            gameOver.call(this, parseInt(parsedMessage[1]), parseInt(parsedMessage[2]));
         }
         console.log('Received a message:', receivedMessage);
     });
-    if (gameEnd)
-    {
-        gameOver.call(this);
-    }
-
 }
 
 function update() {
@@ -256,21 +235,29 @@ function passButton()
     graphics.fillRoundedRect(buttonX, buttonY, buttonWidth, buttonHeight, 15);
 
     // button text
-    const text = this.add.text(buttonX + buttonHeight / 2, buttonY + buttonHeight / 2, buttonText, {
+    const text = this.add.text(buttonX + buttonWidth / 2, buttonY + buttonHeight / 2, buttonText, {
         fontFamily: 'Renogare',
-        fontSize: '24px',
+        fontSize: '5em',
         color: '#4c4f69', // colours.Text
     });
     text.setOrigin(0.5, 0.5);
 
     // player text
-    const playerText = this.add.text(buttonX - 50, buttonY, `Player ${playerNum == 1 ? "One" : "Two"}`, {
+    const playerText = this.add.text(buttonX - buttonWidth * 4 - 50, buttonY + buttonHeight / 2, "You:", {
         fontFamily: 'Renogare',
-        fontSize: '24px',
+        fontSize: '4em',
         color: '#4c4f69', // colours.Text
     });
-    playerText.setOrigin(0.5, 0.5);
-
+    playerText.setOrigin(0, 0.5);
+    this.add.circle(buttonX - buttonWidth * 4 - 50 + playerText.width + 45, buttonY + buttonHeight / 2, gridSize * 0.4, playerNum == 1 ? colours.Text : colours.Base, 1).setStrokeStyle(2, colours.Text);
+    // opponent text
+    const opponentText = this.add.text(buttonX + buttonWidth * 4, buttonY + buttonHeight / 2, "Opponent:", {
+        fontFamily: 'Renogare',
+        fontSize: '4em',
+        color: '#4c4f69', // colours.Text
+    });
+    opponentText.setOrigin(0, 0.5);
+    this.add.circle(buttonX + buttonWidth * 4 + opponentText.width + 45, buttonY + buttonHeight / 2, gridSize * 0.4, playerNum == 1 ? colours.Base : colours.Text, 1).setStrokeStyle(2, colours.Text).setStrokeStyle(2, colours.Text);
     // pass when clicked 
     graphics.setInteractive(new Phaser.Geom.Rectangle(buttonX, buttonY, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
     graphics.on('pointerdown', () => {
@@ -280,12 +267,23 @@ function passButton()
     return graphics;
 }
 
-function gameOver()
+function gameOver(score1, score2)
 {
+    const winner = score1 > score2 ? 1 : 2
+    const winnerText = playerNum == winner ? "You win" : "Opponent wins"
     // game over text
-    const gameOverText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, `Game Over\nPlayer ${winner == 1 ? One : Two} wins!\nScore: ${score}`, {
-        fontFamily: 'Renogare',
-        fontSize: '32px',
-        color: "#eff1f5",
-    }).setOrigin(0.5, 0.5);
+    if (score1 == score2) {
+        const gameOverText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, `Game Over\nDraw!\nScore: ${score1} - ${score2}\n\n\n Refresh Page to play again`, {
+            fontFamily: 'Renogare',
+            fontSize: '8em',
+            color: "#171818",
+        }).setOrigin(0.5, 0.5);
+    } else {
+        const gameOverText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, `Game Over\n${winnerText}!\nScore: ${score1} - ${score2}\n\n\n Refresh Page to play again`, {
+            fontFamily: 'Renogare',
+            fontSize: '8em',
+            color: "#171818",
+        }).setOrigin(0.5, 0.5);
+    }
+    socket.close()
 }
