@@ -56,28 +56,77 @@ const config = {
 
 // global variables
 const game = new Phaser.Game(config);
+const socket = new WebSocket('ws://localhost/game');
 let intersectionPoints = []; // where the player can place the pieces
+let grid;
 let gridSize; // size of the grid
+let pieces = {}; // store the pieces on the board
+let boardSize; // size of the board
+let playerNum = 1; // 0 for white 1 for black
 
 // temporary variables before networking
-const tempBoardDimensions = 19;
 let tempPlayerColour = 1; // 0 for white 1 for black
 
 function preload() // load assets 
 {
-
 }
 
 function create() // create game objects
 {
-    displayBoard.call(this); // display the game board
-
+    boardSize = this.cameras.main.width * 0.6;
     // draw a piece when the player clicks
-    this.input.on('pointerdown', function (pointer) {
-        const colour = tempPlayerColour == 0 ? colours.Base : colours.Text // set the player colour
-        tempPlayerColour = Math.abs(tempPlayerColour - 1); // switch the colour
-        placePiece.call(this, pointer.x, pointer.y, colour);
+    this.input.on('pointerdown', function (pointer)
+    {
+        let margin = boardSize * 0.05; 
+        let boardX = (this.cameras.main.width - boardSize) / 2;
+        let boardY = (this.cameras.main.height - boardSize) / 2;
+        if (pointer.x > boardX && pointer.x < boardSize + boardX - margin && pointer.y > boardY && pointer.y < boardSize + boardY - margin) {
+            socket.send(`M: ${Math.round((pointer.x - (boardX + margin)) / gridSize)} ${Math.round((pointer.y - (margin + boardY)) / gridSize)}`)
+        }
     }, this);
+
+    // "waiting for player" text under the board
+    this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'Waiting for the other player to connect...', {
+        fontFamily: 'Renogare',
+        fontSize: '32px',
+        color: "#eff1f5",
+    }).setOrigin(0.5, 0.5);
+    
+    // Listen for messages from the server
+    socket.addEventListener('message', (event) => {
+        const receivedMessage = event.data;
+        const parsedMessage = receivedMessage.split(' ')
+        // Check if the message starts with a specific string
+        if (parsedMessage[0] == "bd:") {
+            // Do something when the message starts with the expected string
+            displayBoard.call(this, parseInt(parsedMessage[1])); // display the game board
+        } else if (parsedMessage[0] == "M:") {
+            const colour = tempPlayerColour == 0 ? colours.Base : colours.Text // set the player colour
+            tempPlayerColour = Math.abs(tempPlayerColour - 1);
+            const x = grid[parseInt(parsedMessage[2])][parseInt(parsedMessage[4])].x
+            const y = grid[parseInt(parsedMessage[2])][parseInt(parsedMessage[4])].y
+            placePiece.call(this, x, y, colour)
+        } else if (parsedMessage[0] == "D:") {
+            coords = parsedMessage[1].split(',')
+            for (let index = 0; index < coords.length; index = index + 2) {
+                const x = grid[parseInt(coords[index])][parseInt(coords[index + 1])].x
+                const y = grid[parseInt(coords[index])][parseInt(coords[index + 1])].y
+                deletePiece(x, y)
+            }
+            console.log("Deleted")
+        } else if (parsedMessage[0] == "pass") {
+            tempPlayerColour = Math.abs(tempPlayerColour - 1);
+        } else if (parsedMessage[0] ==  "gs") {
+            if (parsedMessage[2] == "1") {
+                playerNum = 1
+            } else {
+                playerNum = 2
+            }
+        } else if (parsedMessage[0] == "end:") {
+            gameOver.call(this, parseInt(parsedMessage[1]), parseInt(parsedMessage[2]));
+        }
+        console.log('Received a message:', receivedMessage);
+    });
 }
 
 function update() {
@@ -86,24 +135,23 @@ function update() {
 
 // name: displayBoard
 // description: displays the game board in the centre of the game window
-function displayBoard() {
+function displayBoard(boardDimensions) {
     // colours
     const boardColour = colours.Base; 
     const baseColour = colours.Surface0;  
     const gridColour = colours.Subtext0; 
 
     // board size and position
-    const boardDimensions = tempBoardDimensions;
-    const boardSize = this.cameras.main.width * 0.6;
     const margin = boardSize * 0.05; // gep between the boartd and the screen
     const cornerRadius = 20; // radius of the board corners
     const shadowOffset = 30; // the bit under the board to give it depth
     gridSize = (boardSize - 2 * margin) / (boardDimensions - 1);
-
+    console.log(gridSize)
     // centre the board
     const boardX = (this.cameras.main.width - boardSize) / 2;
     const boardY = (this.cameras.main.height - boardSize) / 2;
-
+    console.log(boardX)
+    console.log(margin)
 
     // draw the squares
     const graphics = this.add.graphics({ lineStyle: { width: 2, color: gridColour }, fillStyle: { color: boardColour } });
@@ -115,6 +163,7 @@ function displayBoard() {
     graphics.fillRoundedRect(boardX, boardY, boardSize, boardSize, cornerRadius);
 
     // grid
+    grid = Array.from({ length: boardDimensions }, () => Array(boardDimensions).fill(0))
     for (let i = 0; i < boardDimensions; i++) {
         const posY = boardY + margin + i * gridSize; // horizontal
         graphics.strokeLineShape(new Phaser.Geom.Line(boardX + margin, posY, boardX + boardSize - margin, posY));
@@ -130,8 +179,12 @@ function displayBoard() {
             const posX = boardX + margin + x * gridSize;
             const posY = boardY + margin + y * gridSize;
             intersectionPoints.push({ x: posX, y: posY });
+            grid[x][y] = { x: posX, y: posY } 
         }
     }
+    console.log(intersectionPoints[13 + (13 % 13)])
+
+    passButton.call(this); // the pass button
 }
 
 function placePiece(x, y, color) {
@@ -141,8 +194,9 @@ function placePiece(x, y, color) {
         return (distance < closest.distance) ? { point, distance } : closest;
     }, { point: null, distance: Infinity });
 
-    // place the piece
-    if (closestPoint.point && closestPoint.distance < gridSize / 2) {
+    // place the piece if there's no piece there already
+    if ( (closestPoint.point && closestPoint.distance < gridSize / 2))
+    {
         createPiece.call(this, closestPoint.point, color);
     }
 }
@@ -151,4 +205,85 @@ function createPiece(point, colour) {
     const pieceSize = gridSize * 0.4;
     const piece = this.add.circle(point.x, point.y, pieceSize, colour, 1);
     piece.setStrokeStyle(2, colours.Text);
+    pieces[`${point.x}, ${point.y}`] = piece; // store the piece
+}
+
+// name: delete piece
+// description: deletes a piece from the board
+function deletePiece(x, y)
+{
+    if (pieces[`${x}, ${y}`]) // if the piece exists
+    {
+        pieces[`${x}, ${y}`].destroy(); // delete the piece
+    }
+}
+
+// name: passButton
+// description: a pass button that sends "pass" to the server when clicked
+function passButton()
+{
+    const buttonWidth = 150;
+    const buttonHeight = 50;
+    const buttonX = this.cameras.main.centerX - buttonWidth;
+    const buttonY = this.cameras.main.centerY - boardSize / 2 - buttonHeight - 20; // Position above the board
+    const buttonText = 'Pass';
+
+    // button drawing
+    const graphics = this.add.graphics({ fillStyle: { color: colours.Surface0 } });
+    graphics.fillRoundedRect(buttonX + 5, buttonY + 5, buttonWidth, buttonHeight, 15); // Small offset for the shadow
+    graphics.fillStyle(colours.Base, 1);
+    graphics.fillRoundedRect(buttonX, buttonY, buttonWidth, buttonHeight, 15);
+
+    // button text
+    const text = this.add.text(buttonX + buttonWidth / 2, buttonY + buttonHeight / 2, buttonText, {
+        fontFamily: 'Renogare',
+        fontSize: '5em',
+        color: '#4c4f69', // colours.Text
+    });
+    text.setOrigin(0.5, 0.5);
+
+    // player text
+    const playerText = this.add.text(buttonX - buttonWidth * 4 - 50, buttonY + buttonHeight / 2, "You:", {
+        fontFamily: 'Renogare',
+        fontSize: '4em',
+        color: '#4c4f69', // colours.Text
+    });
+    playerText.setOrigin(0, 0.5);
+    this.add.circle(buttonX - buttonWidth * 4 - 50 + playerText.width + 45, buttonY + buttonHeight / 2, gridSize * 0.4, playerNum == 1 ? colours.Text : colours.Base, 1).setStrokeStyle(2, colours.Text);
+    // opponent text
+    const opponentText = this.add.text(buttonX + buttonWidth * 4, buttonY + buttonHeight / 2, "Opponent:", {
+        fontFamily: 'Renogare',
+        fontSize: '4em',
+        color: '#4c4f69', // colours.Text
+    });
+    opponentText.setOrigin(0, 0.5);
+    this.add.circle(buttonX + buttonWidth * 4 + opponentText.width + 45, buttonY + buttonHeight / 2, gridSize * 0.4, playerNum == 1 ? colours.Base : colours.Text, 1).setStrokeStyle(2, colours.Text).setStrokeStyle(2, colours.Text);
+    // pass when clicked 
+    graphics.setInteractive(new Phaser.Geom.Rectangle(buttonX, buttonY, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
+    graphics.on('pointerdown', () => {
+        socket.send('pass');
+    });
+
+    return graphics;
+}
+
+function gameOver(score1, score2)
+{
+    const winner = score1 > score2 ? 1 : 2
+    const winnerText = playerNum == winner ? "You win" : "Opponent wins"
+    // game over text
+    if (score1 == score2) {
+        const gameOverText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, `Game Over\nDraw!\nScore: ${score1} - ${score2}\n\n\n Refresh Page to play again`, {
+            fontFamily: 'Renogare',
+            fontSize: '8em',
+            color: "#171818",
+        }).setOrigin(0.5, 0.5);
+    } else {
+        const gameOverText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, `Game Over\n${winnerText}!\nScore: ${score1} - ${score2}\n\n\n Refresh Page to play again`, {
+            fontFamily: 'Renogare',
+            fontSize: '8em',
+            color: "#171818",
+        }).setOrigin(0.5, 0.5);
+    }
+    socket.close()
 }

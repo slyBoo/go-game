@@ -24,11 +24,12 @@ public class Board {
             for (int j = 0; j <  this.boardMatrix[i].length; j++) {
                 if (this.boardMatrix[i][j].getColour() != Colour.EMPTY && Rules.checkCaptured(this, i, j))  {
                     piecesToBeDeleted.add(getBoardMatrix()[i][j]);
+                    this.boardMatrix[i][j].getPlayer().setScore(this.boardMatrix[i][j].getPlayer().getScore() + 1);
                 }
             }
         }
-        for (int i = 0; i <  this.boardMatrix .length; i++) {
-            for (int j = 0; j <  this.boardMatrix [i].length; j++) {
+        for (int i = 0; i < this.boardMatrix .length; i++) {
+            for (int j = 0; j < this.boardMatrix [i].length; j++) {
                 if (piecesToBeDeleted.contains(this.boardMatrix[i][j])) {
                     this.boardMatrix[i][j].setColour(Colour.EMPTY);
                 }
