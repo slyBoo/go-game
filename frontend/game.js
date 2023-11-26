@@ -56,31 +56,38 @@ const config = {
 
 // global variables
 const game = new Phaser.Game(config);
+const socket = new WebSocket('ws://localhost/game');
 let intersectionPoints = []; // where the player can place the pieces
 let grid;
 let gridSize; // size of the grid
 let pieces = {}; // store the pieces on the board
+let boardSize; // size of the board
 
 // temporary variables before networking
 let tempPlayerColour = 1; // 0 for white 1 for black
 
 function preload() // load assets 
 {
-
 }
 
 function create() // create game objects
 {
-    const socket = new WebSocket('ws://localhost/game');
+    boardSize = this.cameras.main.width * 0.6;
     // draw a piece when the player clicks
-    this.input.on('pointerdown', function (pointer) {
-        let boardSize = this.cameras.main.width * 0.6;
+    this.input.on('pointerdown', function (pointer)
+    {
         let margin = boardSize * 0.05; 
         let boardX = (this.cameras.main.width - boardSize) / 2;
         let boardY = (this.cameras.main.height - boardSize) / 2;
-        // console.log(`M: ${Math.round((pointer.x - (boardX + margin)) / gridSize)} ${Math.round((pointer.y - (margin + boardY)) / gridSize)}`)
         socket.send(`M: ${Math.round((pointer.x - (boardX + margin)) / gridSize)} ${Math.round((pointer.y - (margin + boardY)) / gridSize)}`)
     }, this);
+
+    // "waiting for player" text under the board
+    this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'Waiting for the other player to connect...', {
+        fontFamily: 'Renogare',
+        fontSize: '32px',
+        color: "#eff1f5",
+    }).setOrigin(0.5, 0.5);
     
     // Listen for messages from the server
     socket.addEventListener('message', (event) => {
@@ -89,7 +96,6 @@ function create() // create game objects
         // Check if the message starts with a specific string
         if (parsedMessage[0] == "bd:") {
             // Do something when the message starts with the expected string
-            console.log("ye")
             displayBoard.call(this, parseInt(parsedMessage[1])); // display the game board
         } else if (parsedMessage[0] == "M:") {
             const colour = tempPlayerColour == 0 ? colours.Base : colours.Text // set the player colour
@@ -167,6 +173,8 @@ function displayBoard(boardDimensions) {
         }
     }
     console.log(intersectionPoints[13 + (13 % 13)])
+
+    passButton.call(this); // the pass button
 }
 
 function placePiece(x, y, color) {
@@ -199,4 +207,38 @@ function deletePiece(x, y)
     {
         pieces[`${x}, ${y}`].destroy(); // delete the piece
     }
+}
+
+// name: passButton
+// description: a pass button that sends "pass" to the server when clicked
+function passButton()
+{
+    const buttonWidth = 150;
+    const buttonHeight = 50;
+    const buttonX = this.cameras.main.centerX - buttonWidth / 2;
+    const buttonY = this.cameras.main.centerY - boardSize / 2 - buttonHeight - 20; // Position above the board
+    const buttonText = 'Pass';
+
+    // button drawing
+    const graphics = this.add.graphics({ fillStyle: { color: colours.Surface0 } });
+    graphics.fillRoundedRect(buttonX + 5, buttonY + 5, buttonWidth, buttonHeight, 15); // Small offset for the shadow
+    graphics.fillStyle(colours.Base, 1);
+    graphics.fillRoundedRect(buttonX, buttonY, buttonWidth, buttonHeight, 15);
+
+    // button text
+    const text = this.add.text(buttonX + buttonWidth / 2, buttonY + buttonHeight / 2, buttonText, {
+        fontFamily: 'Renogare',
+        fontSize: '24px',
+        color: '#4c4f69', // colours.Text
+    });
+    text.setOrigin(0.5, 0.5);
+
+    // pass when clicked 
+    graphics.setInteractive(new Phaser.Geom.Rectangle(buttonX, buttonY, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
+    graphics.on('pointerdown', () => {
+        console.log('Pass');
+        socket.send('pass');
+    });
+
+    return graphics;
 }
