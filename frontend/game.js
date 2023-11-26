@@ -74,10 +74,6 @@ function create() // create game objects
     const socket = new WebSocket('ws://localhost/game');
     // draw a piece when the player clicks
     this.input.on('pointerdown', function (pointer) {
-        let closestPoint = intersectionPoints.reduce((closest, point) => {
-            const distance = Phaser.Math.Distance.Between(pointer.x, pointer.y, point.x, point.y);
-            return (distance < closest.distance) ? { point, distance } : closest;
-        }, { point: null, distance: Infinity });
         let boardSize = this.cameras.main.width * 0.6;
         let margin = boardSize * 0.05; 
         let boardX = (this.cameras.main.width - boardSize) / 2;
@@ -101,6 +97,14 @@ function create() // create game objects
             const x = grid[parseInt(parsedMessage[2])][parseInt(parsedMessage[4])].x
             const y = grid[parseInt(parsedMessage[2])][parseInt(parsedMessage[4])].y
             placePiece.call(this, x, y, colour)
+        } else if (parsedMessage[0] == "D:") {
+            coords = parsedMessage[1].split(',')
+            for (let index = 0; index < coords.length; index = index + 2) {
+                const x = grid[parseInt(coords[index])][parseInt(coords[index + 1])].x
+                const y = grid[parseInt(coords[index])][parseInt(coords[index + 1])].y
+                deletePiece(x, y)
+            }
+            console.log("Deleted")
         }
         console.log('Received a message:', receivedMessage);
     });
@@ -173,7 +177,7 @@ function placePiece(x, y, color) {
     }, { point: null, distance: Infinity });
 
     // place the piece if there's no piece there already
-    if ( (closestPoint.point && closestPoint.distance < gridSize / 2) && (!pieces[`${closestPoint.point.x}, ${closestPoint.point.y}`]) )
+    if ( (closestPoint.point && closestPoint.distance < gridSize / 2))
     {
         createPiece.call(this, closestPoint.point, color);
     }
@@ -183,7 +187,7 @@ function createPiece(point, colour) {
     const pieceSize = gridSize * 0.4;
     const piece = this.add.circle(point.x, point.y, pieceSize, colour, 1);
     piece.setStrokeStyle(2, colours.Text);
-    
+    console.log(piece)
     pieces[`${point.x}, ${point.y}`] = piece; // store the piece
 }
 
