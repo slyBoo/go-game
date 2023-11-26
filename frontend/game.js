@@ -62,7 +62,7 @@ let grid;
 let gridSize; // size of the grid
 let pieces = {}; // store the pieces on the board
 let boardSize; // size of the board
-let playerNum = 0; // 0 for white 1 for black
+let playerNum = 1; // 0 for white 1 for black
 
 // temporary variables before networking
 let tempPlayerColour = 1; // 0 for white 1 for black
@@ -128,9 +128,12 @@ function create() // create game objects
         } else if (parsedMessage[0] == "end:") {
 
         }
-        else if (parsedMessage[0] == "gs" && parsedMessage[1] == "1")
+        else if (parsedMessage[0] == "gs" && parsedMessage[1] == "2")
         {
-            playerNum = 1;
+            playerNum = 2;
+        }
+        else if (parsedMessage[0] == "end:")
+        {
         }
         console.log('Received a message:', receivedMessage);
     });
@@ -251,7 +254,7 @@ function passButton()
     text.setOrigin(0.5, 0.5);
 
     // player text
-    const playerText = this.add.text(buttonX, buttonY - 50, `Player ${playerNum == 0 ? "One" : "Two"}`, {
+    const playerText = this.add.text(buttonX, buttonY - 50, `Player ${playerNum == 1 ? "One" : "Two"}`, {
         fontFamily: 'Renogare',
         fontSize: '24px',
         color: '#4c4f69', // colours.Text
