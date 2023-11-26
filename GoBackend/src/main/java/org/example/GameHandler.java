@@ -25,6 +25,7 @@ public class GameHandler {
         p2.setColour(Colour.WHITE);
         p1.setBoard(newGame.getBoard());
         p2.setBoard(newGame.getBoard());
+        newGame.sendAllClients(String.format("bd: %d",Settings.getBoardDimensions()));
     }
 
     static public String makeMove(String msg, Session session) throws IOException {
@@ -35,7 +36,7 @@ public class GameHandler {
             if (player.placePiece(game.getBoard(), Integer.parseInt(parseMsg[1]), Integer.parseInt(parseMsg[2]))) {
                 game.toggleTurn();
                 Board.printMatrix(game.getBoard().getBoardMatrix());
-                game.sendAllClients(String.format("Placed piece at x: %d and y: %d\n", Integer.parseInt(parseMsg[1]), Integer.parseInt(parseMsg[2])));
+                game.sendAllClients(String.format("M: x: %d y: %d", Integer.parseInt(parseMsg[1]), Integer.parseInt(parseMsg[2])));
                 return "Success";
             }
             return  "Invalid place";
@@ -47,8 +48,12 @@ public class GameHandler {
     static public String piecesToBeDeleted(Session session) throws IOException {
         Game game = GameHandler.gameDict.get(session.getId());
         ArrayList<Piece> toBeDeleted = game.getBoard().deletePieces();
-        String s = toBeDeleted.stream().map(Piece::toString).collect(Collectors.joining(","));
-        game.sendAllClients(s);
-        return s;
+        if (!toBeDeleted.isEmpty()) {
+            String s = toBeDeleted.stream().map(Piece::toString).collect(Collectors.joining(","));
+            game.sendAllClients("D: " + s);
+            return s;
+        }
+
+        return "";
     }
 }

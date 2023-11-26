@@ -48,6 +48,6 @@ public class Piece {
 
     @Override
     public String toString() {
-        return String.format("%d:%d", this.x, this.y);
+        return String.format("%d,%d", this.x, this.y);
     }
 }
