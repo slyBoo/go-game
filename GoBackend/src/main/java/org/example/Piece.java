@@ -31,7 +31,7 @@ public class Piece {
 
     public ArrayList<Piece> getNeighbours(Board board) {
         ArrayList<Piece> t = new ArrayList<>();
-        if (y-1 > 0) {
+        if (y-1 >= 0) {
             t.add(board.getBoardMatrix()[x][y - 1]);
         }
         if (x+1 < Settings.getBoardDimensions()) {
@@ -40,7 +40,7 @@ public class Piece {
         if (y+1 < Settings.getBoardDimensions()) {
             t.add(board.getBoardMatrix()[x][y + 1]);
         }
-        if (x-1 > 0) {
+        if (x-1 >= 0) {
             t.add(board.getBoardMatrix()[x - 1][y]);
         }
         return t;
