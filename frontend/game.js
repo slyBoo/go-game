@@ -59,6 +59,7 @@ const game = new Phaser.Game(config);
 let intersectionPoints = []; // where the player can place the pieces
 let grid;
 let gridSize; // size of the grid
+let pieces = {}; // store the pieces on the board
 
 // temporary variables before networking
 let tempPlayerColour = 1; // 0 for white 1 for black
@@ -171,8 +172,9 @@ function placePiece(x, y, color) {
         return (distance < closest.distance) ? { point, distance } : closest;
     }, { point: null, distance: Infinity });
 
-    // place the piece
-    if (closestPoint.point && closestPoint.distance < gridSize / 2) {
+    // place the piece if there's no piece there already
+    if ( (closestPoint.point && closestPoint.distance < gridSize / 2) && (!pieces[`${closestPoint.point.x}, ${closestPoint.point.y}`]) )
+    {
         createPiece.call(this, closestPoint.point, color);
     }
 }
@@ -181,4 +183,16 @@ function createPiece(point, colour) {
     const pieceSize = gridSize * 0.4;
     const piece = this.add.circle(point.x, point.y, pieceSize, colour, 1);
     piece.setStrokeStyle(2, colours.Text);
+    
+    pieces[`${point.x}, ${point.y}`] = piece; // store the piece
+}
+
+// name: delete piece
+// description: deletes a piece from the board
+function deletePiece(x, y)
+{
+    if (pieces[`${x}, ${y}`]) // if the piece exists
+    {
+        pieces[`${x}, ${y}`].destroy(); // delete the piece
+    }
 }
