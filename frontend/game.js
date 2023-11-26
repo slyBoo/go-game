@@ -57,10 +57,10 @@ const config = {
 // global variables
 const game = new Phaser.Game(config);
 let intersectionPoints = []; // where the player can place the pieces
+let grid;
 let gridSize; // size of the grid
 
 // temporary variables before networking
-const tempBoardDimensions = 19;
 let tempPlayerColour = 1; // 0 for white 1 for black
 
 function preload() // load assets 
@@ -70,14 +70,40 @@ function preload() // load assets
 
 function create() // create game objects
 {
-    displayBoard.call(this); // display the game board
-
+    const socket = new WebSocket('ws://localhost/game');
     // draw a piece when the player clicks
     this.input.on('pointerdown', function (pointer) {
-        const colour = tempPlayerColour == 0 ? colours.Base : colours.Text // set the player colour
-        tempPlayerColour = Math.abs(tempPlayerColour - 1); // switch the colour
-        placePiece.call(this, pointer.x, pointer.y, colour);
+        let closestPoint = intersectionPoints.reduce((closest, point) => {
+            const distance = Phaser.Math.Distance.Between(pointer.x, pointer.y, point.x, point.y);
+            return (distance < closest.distance) ? { point, distance } : closest;
+        }, { point: null, distance: Infinity });
+        let boardSize = this.cameras.main.width * 0.6;
+        let margin = boardSize * 0.05; 
+        let boardX = (this.cameras.main.width - boardSize) / 2;
+        let boardY = (this.cameras.main.height - boardSize) / 2;
+        // console.log(`M: ${Math.round((pointer.x - (boardX + margin)) / gridSize)} ${Math.round((pointer.y - (margin + boardY)) / gridSize)}`)
+        socket.send(`M: ${Math.round((pointer.x - (boardX + margin)) / gridSize)} ${Math.round((pointer.y - (margin + boardY)) / gridSize)}`)
     }, this);
+    
+    // Listen for messages from the server
+    socket.addEventListener('message', (event) => {
+        const receivedMessage = event.data;
+        const parsedMessage = receivedMessage.split(' ')
+        // Check if the message starts with a specific string
+        if (parsedMessage[0] == "bd:") {
+            // Do something when the message starts with the expected string
+            console.log("ye")
+            displayBoard.call(this, parseInt(parsedMessage[1])); // display the game board
+        } else if (parsedMessage[0] == "M:") {
+            const colour = tempPlayerColour == 0 ? colours.Base : colours.Text // set the player colour
+            tempPlayerColour = Math.abs(tempPlayerColour - 1); // switch the colour
+            const x = grid[parseInt(parsedMessage[2])][parseInt(parsedMessage[4])].x
+            const y = grid[parseInt(parsedMessage[2])][parseInt(parsedMessage[4])].y
+            placePiece.call(this, x, y, colour)
+        }
+        console.log('Received a message:', receivedMessage);
+    });
+
 }
 
 function update() {
@@ -86,23 +112,24 @@ function update() {
 
 // name: displayBoard
 // description: displays the game board in the centre of the game window
-function displayBoard() {
+function displayBoard(boardDimensions) {
     // colours
     const boardColour = colours.Base; 
     const baseColour = colours.Surface0;  
     const gridColour = colours.Subtext0; 
 
     // board size and position
-    const boardDimensions = tempBoardDimensions;
     const boardSize = this.cameras.main.width * 0.6;
     const margin = boardSize * 0.05; // gep between the boartd and the screen
     const cornerRadius = 20; // radius of the board corners
     const shadowOffset = 30; // the bit under the board to give it depth
     gridSize = (boardSize - 2 * margin) / (boardDimensions - 1);
-
+    console.log(gridSize)
     // centre the board
     const boardX = (this.cameras.main.width - boardSize) / 2;
     const boardY = (this.cameras.main.height - boardSize) / 2;
+    console.log(boardX)
+    console.log(margin)
 
 
     // draw the squares
@@ -115,6 +142,7 @@ function displayBoard() {
     graphics.fillRoundedRect(boardX, boardY, boardSize, boardSize, cornerRadius);
 
     // grid
+    grid = Array.from({ length: boardDimensions }, () => Array(boardDimensions).fill(0))
     for (let i = 0; i < boardDimensions; i++) {
         const posY = boardY + margin + i * gridSize; // horizontal
         graphics.strokeLineShape(new Phaser.Geom.Line(boardX + margin, posY, boardX + boardSize - margin, posY));
@@ -130,8 +158,10 @@ function displayBoard() {
             const posX = boardX + margin + x * gridSize;
             const posY = boardY + margin + y * gridSize;
             intersectionPoints.push({ x: posX, y: posY });
+            grid[x][y] = { x: posX, y: posY } 
         }
     }
+    console.log(intersectionPoints[13 + (13 % 13)])
 }
 
 function placePiece(x, y, color) {

@@ -1,5 +1,15 @@
 {
+  "name": "frontend",
+  "source": "index.html",
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build"
+  },
+  "devDependencies": {
+    "parcel": "latest"
+  },
   "dependencies": {
     "phaser": "^3.70.0"
   }
+
 }
