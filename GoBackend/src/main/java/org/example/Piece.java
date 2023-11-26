@@ -6,11 +6,20 @@ public class Piece {
     private Colour colour;
     private int x;
     private int y;
+    private Player player;
 
     public Piece(Colour colour, int x, int y) {
         this.colour =  colour;
         this.x = x;
         this.y = y;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
     }
 
     public Colour getColour() {

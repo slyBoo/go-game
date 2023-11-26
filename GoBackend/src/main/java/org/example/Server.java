@@ -19,6 +19,9 @@ public class Server {
             GameHandler.piecesToBeDeleted(session);
             return s;
         }
+        if(msg.equals("pass")) {
+            return GameHandler.passMove(session);
+        }
         return "Invalid";
     }
 

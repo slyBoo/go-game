@@ -80,7 +80,13 @@ function create() // create game objects
         let margin = boardSize * 0.05; 
         let boardX = (this.cameras.main.width - boardSize) / 2;
         let boardY = (this.cameras.main.height - boardSize) / 2;
-        socket.send(`M: ${Math.round((pointer.x - (boardX + margin)) / gridSize)} ${Math.round((pointer.y - (margin + boardY)) / gridSize)}`)
+        console.log(boardX)
+        console.log(boardY)
+        console.log(boardSize)
+        console.log(`${pointer.x} ${pointer.y}`)
+        if (pointer.x > boardX && pointer.x < boardSize + boardX - margin && pointer.y > boardY && pointer.y < boardSize + boardY - margin) {
+            socket.send(`M: ${Math.round((pointer.x - (boardX + margin)) / gridSize)} ${Math.round((pointer.y - (margin + boardY)) / gridSize)}`)
+        }
     }, this);
 
     // "waiting for player" text under the board
@@ -111,6 +117,16 @@ function create() // create game objects
                 deletePiece(x, y)
             }
             console.log("Deleted")
+        } else if (parsedMessage[0] == "pass") {
+            tempPlayerColour = Math.abs(tempPlayerColour - 1);
+        } else if (parsedMessage[0] ==  "gs") {
+            if (parsedMessage[2] == "1") {
+                playerNum = 1
+            } else {
+                playerNum = 2
+            }
+        } else if (parsedMessage[0] == "end:") {
+
         }
         else if (parsedMessage[0] == "gs" && parsedMessage[1] == "1")
         {
@@ -197,7 +213,6 @@ function createPiece(point, colour) {
     const pieceSize = gridSize * 0.4;
     const piece = this.add.circle(point.x, point.y, pieceSize, colour, 1);
     piece.setStrokeStyle(2, colours.Text);
-    console.log(piece)
     pieces[`${point.x}, ${point.y}`] = piece; // store the piece
 }
 
@@ -246,7 +261,6 @@ function passButton()
     // pass when clicked 
     graphics.setInteractive(new Phaser.Geom.Rectangle(buttonX, buttonY, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
     graphics.on('pointerdown', () => {
-        console.log('Pass');
         socket.send('pass');
     });
 
