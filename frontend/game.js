@@ -62,6 +62,7 @@ let grid;
 let gridSize; // size of the grid
 let pieces = {}; // store the pieces on the board
 let boardSize; // size of the board
+let playerNum = 0; // 0 for white 1 for black
 
 // temporary variables before networking
 let tempPlayerColour = 1; // 0 for white 1 for black
@@ -98,8 +99,7 @@ function create() // create game objects
             // Do something when the message starts with the expected string
             displayBoard.call(this, parseInt(parsedMessage[1])); // display the game board
         } else if (parsedMessage[0] == "M:") {
-            const colour = tempPlayerColour == 0 ? colours.Base : colours.Text // set the player colour
-            tempPlayerColour = Math.abs(tempPlayerColour - 1); // switch the colour
+            const colour = playerNum == 0 ? colours.Base : colours.Text // set the player colour
             const x = grid[parseInt(parsedMessage[2])][parseInt(parsedMessage[4])].x
             const y = grid[parseInt(parsedMessage[2])][parseInt(parsedMessage[4])].y
             placePiece.call(this, x, y, colour)
@@ -111,6 +111,10 @@ function create() // create game objects
                 deletePiece(x, y)
             }
             console.log("Deleted")
+        }
+        else if (parsedMessage[0] == "gs" && parsedMessage[1] == "1")
+        {
+            playerNum = 1;
         }
         console.log('Received a message:', receivedMessage);
     });
@@ -140,7 +144,6 @@ function displayBoard(boardDimensions) {
     const boardY = (this.cameras.main.height - boardSize) / 2;
     console.log(boardX)
     console.log(margin)
-
 
     // draw the squares
     const graphics = this.add.graphics({ lineStyle: { width: 2, color: gridColour }, fillStyle: { color: boardColour } });
@@ -225,12 +228,20 @@ function passButton()
     graphics.fillRoundedRect(buttonX, buttonY, buttonWidth, buttonHeight, 15);
 
     // button text
-    const text = this.add.text(buttonX + buttonWidth / 2, buttonY + buttonHeight / 2, buttonText, {
+    const text = this.add.text(buttonX, buttonY + buttonHeight / 2, buttonText, {
         fontFamily: 'Renogare',
         fontSize: '24px',
         color: '#4c4f69', // colours.Text
     });
     text.setOrigin(0.5, 0.5);
+
+    // player text
+    const playerText = this.add.text(buttonX, buttonY - 50, `Player ${playerNum == 0 ? "One" : "Two"}`, {
+        fontFamily: 'Renogare',
+        fontSize: '24px',
+        color: '#4c4f69', // colours.Text
+    });
+    playerText.setOrigin(0.5, 0.5);
 
     // pass when clicked 
     graphics.setInteractive(new Phaser.Geom.Rectangle(buttonX, buttonY, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
