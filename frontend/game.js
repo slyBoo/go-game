@@ -63,6 +63,9 @@ let gridSize; // size of the grid
 let pieces = {}; // store the pieces on the board
 let boardSize; // size of the board
 let playerNum = 1; // 0 for white 1 for black
+let gameEnd = false; // if the game has ended
+let winner;
+let score = 0;
 
 // temporary variables before networking
 let tempPlayerColour = 1; // 0 for white 1 for black
@@ -101,7 +104,7 @@ function create() // create game objects
         const receivedMessage = event.data;
         const parsedMessage = receivedMessage.split(' ')
         // Check if the message starts with a specific string
-        if (parsedMessage[0] == "bd:") {
+        if (parsedMessage[0] == "bd:" && !gameEnd) {
             // Do something when the message starts with the expected string
             displayBoard.call(this, parseInt(parsedMessage[1])); // display the game board
         } else if (parsedMessage[0] == "M:") {
@@ -132,11 +135,18 @@ function create() // create game objects
         {
             playerNum = 2;
         }
-        else if (parsedMessage[0] == "end:")
+        else if (parsedMessage[0] == "end:") // end the game
         {
+            gameEnd = true;
+            winner = parsedMessage[1];
+            score = parsedMessage[2];
         }
         console.log('Received a message:', receivedMessage);
     });
+    if (gameEnd)
+    {
+        gameOver.call(this);
+    }
 
 }
 
@@ -268,4 +278,14 @@ function passButton()
     });
 
     return graphics;
+}
+
+function gameOver()
+{
+    // game over text
+    const gameOverText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, `Game Over\nPlayer ${winner == 1 ? One : Two} wins!\nScore: ${score}`, {
+        fontFamily: 'Renogare',
+        fontSize: '32px',
+        color: "#eff1f5",
+    }).setOrigin(0.5, 0.5);
 }
