@@ -63,7 +63,7 @@ let gridSize; // size of the grid
 let pieces = {}; // store the pieces on the board
 let boardSize; // size of the board
 let playerNum = 1; // 0 for white 1 for black
-
+let statusText
 // temporary variables before networking
 let tempPlayerColour = 1; // 0 for white 1 for black
 
@@ -88,10 +88,14 @@ function create() // create game objects
     // "waiting for player" text under the board
     this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'Waiting for the other player to connect...', {
         fontFamily: 'Renogare',
-        fontSize: '32px',
+        fontSize: '5em',
         color: "#eff1f5",
     }).setOrigin(0.5, 0.5);
-    
+    statusText = this.add.text(this.cameras.main.centerX, this.cameras.main.height - 40, '', { 
+        fontFamily: 'Renogare',
+        fontSize: '4em', 
+        fill: '#000000' 
+    }).setOrigin(0.5, 0.5);
     // Listen for messages from the server
     socket.addEventListener('message', (event) => {
         const receivedMessage = event.data;
@@ -106,24 +110,32 @@ function create() // create game objects
             const x = grid[parseInt(parsedMessage[2])][parseInt(parsedMessage[4])].x
             const y = grid[parseInt(parsedMessage[2])][parseInt(parsedMessage[4])].y
             placePiece.call(this, x, y, colour)
+            statusText.setText(`Move made at x:${parsedMessage[2]} y:${parsedMessage[4]}`);
         } else if (parsedMessage[0] == "D:") {
             coords = parsedMessage[1].split(',')
             for (let index = 0; index < coords.length; index = index + 2) {
                 const x = grid[parseInt(coords[index])][parseInt(coords[index + 1])].x
                 const y = grid[parseInt(coords[index])][parseInt(coords[index + 1])].y
                 deletePiece(x, y)
+                
             }
-            console.log("Deleted")
+            statusText.setText("Pieces have been captured!");
         } else if (parsedMessage[0] == "pass") {
             tempPlayerColour = Math.abs(tempPlayerColour - 1);
+            statusText.setText("Player passed his turn!");
         } else if (parsedMessage[0] ==  "gs") {
             if (parsedMessage[2] == "1") {
                 playerNum = 1
+                statusText.setText("Play the first move!");
             } else {
                 playerNum = 2
+                statusText.setText("Wait for your opponent to play!");
             }
         } else if (parsedMessage[0] == "end:") {
             gameOver.call(this, parseInt(parsedMessage[1]), parseInt(parsedMessage[2]));
+            statusText.setText("Game has ended!");
+        } else {
+            statusText.setText(receivedMessage);
         }
         console.log('Received a message:', receivedMessage);
     });

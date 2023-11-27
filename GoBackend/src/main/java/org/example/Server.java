@@ -22,7 +22,7 @@ public class Server {
         if(msg.equals("pass")) {
             return GameHandler.passMove(session);
         }
-        return "Invalid";
+        return "Invalid!";
     }
 
     @OnOpen

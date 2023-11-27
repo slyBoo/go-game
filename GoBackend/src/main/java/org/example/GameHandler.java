@@ -38,11 +38,11 @@ public class GameHandler {
                 Board.printMatrix(game.getBoard().getBoardMatrix());
                 game.sendAllClients(String.format("M: x: %d y: %d", Integer.parseInt(parseMsg[1]), Integer.parseInt(parseMsg[2])));
                 game.setPassCount(0); // Set pass count to 0 cause move has been played
-                return "Success";
+                return "Successfully placed!";
             }
-            return  "Invalid place";
+            return  "Invalid place!";
         } else {
-            return "not your turn";
+            return "Not your turn!";
         }
     }
 
@@ -66,11 +66,11 @@ public class GameHandler {
             game.setPassCount(game.getPassCount() + 1);
             if (game.getPassCount() == 2) {
                 game.sendAllClients(String.format("end: %d %d", game.getP1().getScore(), game.getP2().getScore()));
-                return "End Game";
+                return "End Game!";
             }
             game.sendAllClients("pass");
-            return "Success";
+            return "Passed your turn!";
         }
-        return "not your turn";
+        return "Not your turn!";
     }
 }
