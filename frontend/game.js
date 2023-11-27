@@ -56,7 +56,7 @@ const config = {
 
 // global variables
 const game = new Phaser.Game(config);
-const socket = new WebSocket('ws://localhost/game');
+const socket = new WebSocket('ws://172.20.10.3/game');
 let intersectionPoints = []; // where the player can place the pieces
 let grid;
 let gridSize; // size of the grid
@@ -66,6 +66,7 @@ let playerNum = 1; // 0 for white 1 for black
 let statusText
 // temporary variables before networking
 let tempPlayerColour = 1; // 0 for white 1 for black
+let gameEnd = false;
 
 function preload() // load assets 
 {
@@ -86,7 +87,7 @@ function create() // create game objects
     }, this);
 
     // "waiting for player" text under the board
-    this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'Waiting for the other player to connect...', {
+    this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'Waiting for the\nother player to connect...', {
         fontFamily: 'Renogare',
         fontSize: '5em',
         color: "#eff1f5",
@@ -101,7 +102,7 @@ function create() // create game objects
         const receivedMessage = event.data;
         const parsedMessage = receivedMessage.split(' ')
         // Check if the message starts with a specific string
-        if (parsedMessage[0] == "bd:") {
+        if (parsedMessage[0] == "bd:" && !gameEnd) {
             // Do something when the message starts with the expected string
             displayBoard.call(this, parseInt(parsedMessage[1])); // display the game board
         } else if (parsedMessage[0] == "M:") {
@@ -134,6 +135,7 @@ function create() // create game objects
         } else if (parsedMessage[0] == "end:") {
             gameOver.call(this, parseInt(parsedMessage[1]), parseInt(parsedMessage[2]));
             statusText.setText("Game has ended!");
+            gameEnd = true;
         } else {
             statusText.setText(receivedMessage);
         }
@@ -281,8 +283,11 @@ function passButton()
 
 function gameOver(score1, score2)
 {
+    // draw a rectangle over everything
+    const graphics = this.add.graphics({ fillStyle: { color: colours.Rosewater } });
+    graphics.fillRoundedRect(0, 0, this.cameras.main.width, this.cameras.main.height, 0);
     const winner = score1 > score2 ? 1 : 2
-    const winnerText = playerNum == winner ? "You win" : "Opponent wins"
+    const winnerText = playerNum == winner ? "Opponent Wins..." : "You Win!"
     // game over text
     if (score1 == score2) {
         const gameOverText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, `Game Over\nDraw!\nScore: ${score1} - ${score2}\n\n\n Refresh Page to play again`, {
