@@ -52,6 +52,7 @@ public class GameHandler {
         if (!toBeDeleted.isEmpty()) {
             String s = toBeDeleted.stream().map(Piece::toString).collect(Collectors.joining(","));
             game.sendAllClients("D: " + s);
+            game.sendAllClients(String.format("S: %d %d", game.getP1().getScore(), game.getP2().getScore()));
             return s;
         }
 

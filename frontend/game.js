@@ -67,6 +67,8 @@ let statusText
 // temporary variables before networking
 let tempPlayerColour = 1; // 0 for white 1 for black
 let gameEnd = false;
+let leftScore;
+let rightScore
 
 function preload() // load assets 
 {
@@ -139,10 +141,13 @@ function create() // create game objects
         }
         else if (parsedMessage[0] == "S:")
         {
-            player1Score.setText(parsedMessage[1]);
-            player2Score.setText(parsedMessage[2]);
-            console.log(parsedMessage[1])
-            console.log(parsedMessage[2])
+            if (playerNum == 1) {
+                leftScore.setText(parsedMessage[2]);
+                rightScore.setText(parsedMessage[1]);
+            } else {
+                leftScore.setText(parsedMessage[1]);
+                rightScore.setText(parsedMessage[2]);
+            }
         }
         else {
             statusText.setText(receivedMessage);
@@ -289,20 +294,20 @@ function passButton()
     });
 
     // player 1 score
-    const player1Score = this.add.text(buttonX - (boardSize / 2), this.cameras.main.centerY, "0", {
+    leftScore = this.add.text(buttonX - (boardSize / 2), this.cameras.main.centerY, "0", {
         fontFamily: 'Renogare',
         fontSize: '10em',
         color: (playerNum == 1 ? "#4c4f69" : "#eff1f5"), 
     });
-    player1Score.setOrigin(0.5, 0.5);
+    leftScore.setOrigin(0.5, 0.5);
 
     // player 2 score
-    const player2Score = this.add.text(buttonX + (boardSize / 2) + buttonWidth, this.cameras.main.centerY, "0", {
+    rightScore = this.add.text(buttonX + (boardSize / 2) + buttonWidth, this.cameras.main.centerY, "0", {
         fontFamily: 'Renogare',
         fontSize: '10em',
         color: (playerNum === 2 ? "#4c4f69" : "#eff1f5"), 
     });
-    player2Score.setOrigin(0.5, 0.5);
+    rightScore.setOrigin(0.5, 0.5);
 
     return graphics;
 }
