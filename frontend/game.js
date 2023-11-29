@@ -56,7 +56,7 @@ const config = {
 
 // global variables
 const game = new Phaser.Game(config);
-const socket = new WebSocket('ws://172.20.10.3/game');
+const socket = new WebSocket('ws://localhost/game');
 let intersectionPoints = []; // where the player can place the pieces
 let grid;
 let gridSize; // size of the grid
@@ -136,7 +136,15 @@ function create() // create game objects
             gameOver.call(this, parseInt(parsedMessage[1]), parseInt(parsedMessage[2]));
             statusText.setText("Game has ended!");
             gameEnd = true;
-        } else {
+        }
+        else if (parsedMessage[0] == "S:")
+        {
+            player1Score.setText(parsedMessage[1]);
+            player2Score.setText(parsedMessage[2]);
+            console.log(parsedMessage[1])
+            console.log(parsedMessage[2])
+        }
+        else {
             statusText.setText(receivedMessage);
         }
         console.log('Received a message:', receivedMessage);
@@ -236,9 +244,9 @@ function deletePiece(x, y)
 // description: a pass button that sends "pass" to the server when clicked
 function passButton()
 {
-    const buttonWidth = 150;
-    const buttonHeight = 50;
-    const buttonX = this.cameras.main.centerX - buttonWidth;
+    const buttonWidth = 200;
+    const buttonHeight = 75;
+    const buttonX = this.cameras.main.centerX - (buttonWidth / 2);
     const buttonY = this.cameras.main.centerY - boardSize / 2 - buttonHeight - 20; // Position above the board
     const buttonText = 'Pass';
 
@@ -257,26 +265,44 @@ function passButton()
     text.setOrigin(0.5, 0.5);
 
     // player text
-    const playerText = this.add.text(buttonX - buttonWidth * 4 - 50, buttonY + buttonHeight / 2, "You:", {
+    const playerText = this.add.text(20, buttonY + buttonHeight / 2, "You: ", {
         fontFamily: 'Renogare',
         fontSize: '4em',
         color: '#4c4f69', // colours.Text
     });
     playerText.setOrigin(0, 0.5);
-    this.add.circle(buttonX - buttonWidth * 4 - 50 + playerText.width + 45, buttonY + buttonHeight / 2, gridSize * 0.4, playerNum == 1 ? colours.Text : colours.Base, 1).setStrokeStyle(2, colours.Text);
+    this.add.circle(playerText.width * 1.5, buttonY + buttonHeight / 2, gridSize * 0.4, playerNum == 1 ? colours.Text : colours.Base, 1).setStrokeStyle(2, colours.Text);
+    
     // opponent text
-    const opponentText = this.add.text(buttonX + buttonWidth * 4, buttonY + buttonHeight / 2, "Opponent:", {
+    const opponentText = this.add.text(this.cameras.main.width - gridSize - 20, buttonY + buttonHeight / 2, "Opponent: ", {
         fontFamily: 'Renogare',
         fontSize: '4em',
         color: '#4c4f69', // colours.Text
     });
-    opponentText.setOrigin(0, 0.5);
-    this.add.circle(buttonX + buttonWidth * 4 + opponentText.width + 45, buttonY + buttonHeight / 2, gridSize * 0.4, playerNum == 1 ? colours.Base : colours.Text, 1).setStrokeStyle(2, colours.Text).setStrokeStyle(2, colours.Text);
+    opponentText.setOrigin(1, 0.5);
+    this.add.circle(this.cameras.main.width - (gridSize * 0.8), buttonY + buttonHeight / 2, gridSize * 0.4, playerNum == 1 ? colours.Base : colours.Text, 1).setStrokeStyle(2, colours.Text).setStrokeStyle(2, colours.Text);
+    
     // pass when clicked 
     graphics.setInteractive(new Phaser.Geom.Rectangle(buttonX, buttonY, buttonWidth, buttonHeight), Phaser.Geom.Rectangle.Contains);
     graphics.on('pointerdown', () => {
         socket.send('pass');
     });
+
+    // player 1 score
+    const player1Score = this.add.text(buttonX - (boardSize / 2), this.cameras.main.centerY, "0", {
+        fontFamily: 'Renogare',
+        fontSize: '10em',
+        color: (playerNum == 1 ? "#4c4f69" : "#eff1f5"), 
+    });
+    player1Score.setOrigin(0.5, 0.5);
+
+    // player 2 score
+    const player2Score = this.add.text(buttonX + (boardSize / 2) + buttonWidth, this.cameras.main.centerY, "0", {
+        fontFamily: 'Renogare',
+        fontSize: '10em',
+        color: (playerNum === 2 ? "#4c4f69" : "#eff1f5"), 
+    });
+    player2Score.setOrigin(0.5, 0.5);
 
     return graphics;
 }
