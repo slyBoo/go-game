@@ -97,7 +97,7 @@ function create() // create game objects
     statusText = this.add.text(this.cameras.main.centerX, this.cameras.main.height - 40, '', { 
         fontFamily: 'Renogare',
         fontSize: '4em', 
-        fill: '#000000' 
+        fill: '#4c4f69' 
     }).setOrigin(0.5, 0.5);
     // Listen for messages from the server
     socket.addEventListener('message', (event) => {
@@ -318,19 +318,19 @@ function gameOver(score1, score2)
     const graphics = this.add.graphics({ fillStyle: { color: colours.Rosewater } });
     graphics.fillRoundedRect(0, 0, this.cameras.main.width, this.cameras.main.height, 0);
     const winner = score1 > score2 ? 1 : 2
-    const winnerText = playerNum == winner ? "Opponent Wins..." : "You Win!"
+    const winnerText = playerNum == winner ? "Opponent wins..." : "You win!"
     // game over text
     if (score1 == score2) {
         const gameOverText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, `Game Over\nDraw!\nScore: ${score1} - ${score2}\n\n\n Refresh Page to play again`, {
             fontFamily: 'Renogare',
             fontSize: '8em',
-            color: "#171818",
+            color: "#4c4f69",
         }).setOrigin(0.5, 0.5);
     } else {
-        const gameOverText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, `Game Over\n${winnerText}!\nScore: ${score1} - ${score2}\n\n\n Refresh Page to play again`, {
+        const gameOverText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, `Game Over\n${winnerText}\nScore: ${score1} - ${score2}\n\n\nRefresh Page to play again`, {
             fontFamily: 'Renogare',
             fontSize: '8em',
-            color: "#171818",
+            color: "#4c4f69",
         }).setOrigin(0.5, 0.5);
     }
     socket.close()
