@@ -36,9 +36,9 @@ public class Server {
     }
 
     @OnClose
-    public void helloOnClose(Session session) {
+    public void helloOnClose(Session session) throws IOException {
         GameHandler.playerQ.removeIf(p -> session.getId().equals(p.getSession().getId()));
-        GameHandler.gameDict.remove(session.getId());
+        GameHandler.playerLeft(session);
         System.out.println("WebSocket connection closed ");
     }
 

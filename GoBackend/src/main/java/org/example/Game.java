@@ -20,8 +20,17 @@ public class Game {
     }
 
     public void sendAllClients(String msg) throws IOException {
-        p1.getSession().getBasicRemote().sendText(msg);
-        p2.getSession().getBasicRemote().sendText(msg);
+        if (p1.getSession().isOpen()) {
+            p1.getSession().getBasicRemote().sendText(msg);
+        }
+        if (p2.getSession().isOpen()) {
+            p2.getSession().getBasicRemote().sendText(msg);
+        }
+    }
+
+    public void closeALlClients() {
+        GameHandler.gameDict.remove(p1.getSession().getId());
+        GameHandler.gameDict.remove(p2.getSession().getId());
     }
     public Player getTurn() {
         return turn ? p1 : p2;

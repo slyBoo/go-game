@@ -74,4 +74,13 @@ public class GameHandler {
         }
         return "Not your turn!";
     }
+
+    static public String playerLeft(Session session) throws IOException {
+        if (!gameDict.containsKey(session.getId())) { return ""; }
+        Game game = GameHandler.gameDict.get(session.getId());
+        game.sendAllClients(String.format("end: %d %d", game.getP1().getScore(), game.getP2().getScore()));
+        game.closeALlClients();
+
+        return "Player left";
+    }
 }
