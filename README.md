@@ -16,11 +16,8 @@ Intellij IDEA 2023.2.5
 ## Usage
 ### Server:
 
-Open GoBackend folder and configure java 
-
-version to java 19 or newer. 
-
-Press run.
+cd /GoBackend/out/artiffacts/GoBackend_jar
+java -jar GoBackend.jar
 
 ### Client:
 Open 2 terminals.
