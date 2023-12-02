@@ -11,8 +11,6 @@ npm install
 
 npm install -g parcel-bundler
 
-Intellij IDEA 2023.2.5
-
 ## Usage
 ### Server:
 
