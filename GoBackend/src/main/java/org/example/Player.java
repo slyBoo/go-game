@@ -15,6 +15,7 @@ public class Player {
     public boolean placePiece(Board board, int x, int y) {
         if (Rules.canPlace(board, x, y, this.colour)) {
             board.getBoardMatrix()[x][y].setColour(this.colour);
+            board.getBoardMatrix()[x][y].setPlayer(this);
             return true;
         }
         return false;

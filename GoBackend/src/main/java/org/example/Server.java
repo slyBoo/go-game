@@ -19,7 +19,10 @@ public class Server {
             GameHandler.piecesToBeDeleted(session);
             return s;
         }
-        return "Invalid";
+        if(msg.equals("pass")) {
+            return GameHandler.passMove(session);
+        }
+        return "Invalid!";
     }
 
     @OnOpen
@@ -33,38 +36,14 @@ public class Server {
     }
 
     @OnClose
-    public void helloOnClose(Session session) {
+    public void helloOnClose(Session session) throws IOException {
         GameHandler.playerQ.removeIf(p -> session.getId().equals(p.getSession().getId()));
+        GameHandler.playerLeft(session);
         System.out.println("WebSocket connection closed ");
     }
 
     public static void main(String[] args) {
         org.glassfish.tyrus.server.Server server = new org.glassfish.tyrus.server.Server("localhost", 80, "", null, Server.class);
-        Board board = new Board();
-        board.getBoardMatrix()[3][4] = new Piece(Colour.WHITE, 3, 4);
-        board.getBoardMatrix()[4][4] = new Piece(Colour.WHITE, 4, 4);
-        board.getBoardMatrix()[3][3] = new Piece(Colour.BLACK, 3, 3);
-        board.getBoardMatrix()[4][3] = new Piece(Colour.BLACK, 4, 3);
-        board.getBoardMatrix()[3][5] = new Piece(Colour.BLACK, 3, 5);
-        board.getBoardMatrix()[5][4] = new Piece(Colour.BLACK, 5, 4);
-        board.getBoardMatrix()[4][5] = new Piece(Colour.BLACK, 5, 4);
-        board.getBoardMatrix()[2][4] = new Piece(Colour.BLACK, 2, 4);
-        board.getBoardMatrix()[1][0] = new Piece(Colour.BLACK, 1, 0);
-        board.getBoardMatrix()[0][1] = new Piece(Colour.BLACK, 0, 1);
-        board.getBoardMatrix()[1][1] = new Piece(Colour.BLACK, 1, 1);
-        board.getBoardMatrix()[0][0] = new Piece(Colour.WHITE, 0, 0);
-
-
-//        System.out.println(board.getBoardMatrix()[4][4].getNeighbours(board));
-        Board.printMatrix(board.getBoardMatrix());
-        board.deletePieces();
-        Board.printMatrix(board.getBoardMatrix());
-        board.getBoardMatrix()[3][4] = new Piece(Colour.WHITE, 3, 4);
-        board.getBoardMatrix()[3][4] = new Piece(Colour.WHITE, 4, 4);
-
-        board.deletePieces();
-        Board.printMatrix(board.getBoardMatrix());
-
         try {
             server.start();
             System.in.read();
