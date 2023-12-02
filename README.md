@@ -17,6 +17,7 @@ Intellij IDEA 2023.2.5
 ### Server:
 
 cd /GoBackend/out/artiffacts/GoBackend_jar
+
 java -jar GoBackend.jar
 
 ### Client:
